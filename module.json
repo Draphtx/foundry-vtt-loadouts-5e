@@ -1,0 +1,46 @@
+{
+    "title": "Loadouts: D&D 5e",
+    "name": "loadouts-5e",
+    "id": "loadouts-5e",
+    "description": "D&D 5e extensions for Foundry VTT Loadouts",
+    "authors": [
+      {
+        "name": "draphtx",
+        "email": "draphtx@gmail.com",
+        "url": "https://www.buymeacoffee.com/draphtx"
+      }
+    ],
+    "version": "1.0.1",
+    "minimumCoreVersion" : "10.291",
+    "compatibleCoreVersion" : 10,
+    "compatibility": {
+        "minimum": 10,
+        "verified": "10.291"
+    },
+    "relationships": {
+      "requires": [
+        {
+          "id": "loadouts",
+          "type": "module",
+          "compatibility": {}
+        }
+      ]
+    },
+    "esmodules": [
+      "scripts/5eToken.js"
+    ],
+    "scripts": [
+      "scripts/5eConfig.js"
+    ],
+    "media": [
+      {
+          "type": "cover",
+          "link": "https://raw.githubusercontent.com/Draphtx/foundry-vtt-loadouts-cpr/continuous/artwork/module/loadouts-cpr-cover.png"
+      }
+    ],
+    "url": "#{URL}#",
+    "manifest": "#{MANIFEST}#",
+    "download": "#{DOWNLOAD}#",
+    "license": "LICENSE",
+    "readme": "README.md"
+  }
