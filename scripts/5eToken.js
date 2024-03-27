@@ -128,6 +128,45 @@ class DnD5eLoadoutsItem extends LoadoutsRegistry.tokenClasses.loadoutsItem {
 */    };
 };
 
+function processUpdatedItem(document, diff, _, userId) {
+    console.log("processing updated item")
+    
+    if(diff?.system?.quantity){
+        console.log("Quantity change")
+    };
+    const { changeAmount, changeType } = compareQuantities(document.system.quantity, diff.system.quantity)
+
+    if(changeType == 'increase') {
+        processIncreasedQuantity(document, diff, userId, changeAmount);
+    } else if(changeType == 'decrease') {
+        processDecreasedQuantity(changeAmount);
+    } else {
+        console.log("Quantity does not appear to have changed")
+        return;
+    }
+}
+
+function compareQuantities(previousQuantity, updatedQuantity){
+    const difference =  updatedQuantity - previousQuantity;
+    return {
+        changeAmount: Math.abs(difference),
+        changeType: difference > 0 ? 'increase' : difference < 0 ? 'decrease' : None
+    };
+};
+
+async function processIncreasedQuantity(document, diff, userId, changeAmount) {
+    console.log(`processing increase in quantity by ${changeAmount}`)
+    for(let i = 0; i < changeAmount; i++) {
+        console.log(`processing added item ${i}`)
+        const loadoutsItem = new DnD5eLoadoutsItem(document, diff, userId);
+        await loadoutsItem.processNewItem()
+    };
+};
+
+function processDecreasedQuantity(changeAmount) { 
+    console.log(`processing decrease in quantity by ${changeAmount}`) 
+};
+
 //Hooks.once('loadoutsReady', function() {
     window.LoadoutsRegistry.registerTokenClass("dnd-5e", DnD5eLoadoutsToken);
     window.LoadoutsRegistry.registerTokenClass("dnd-5e", DnD5eLoadoutsItem);
@@ -136,8 +175,8 @@ class DnD5eLoadoutsItem extends LoadoutsRegistry.tokenClasses.loadoutsItem {
 
 Hooks.on("preUpdateItem", function(document, diff, _, userId) {
     console.log("preUpdate detected")
-    const loadoutsItem = new DnD5eLoadoutsItem(document, diff, userId);
-    loadoutsItem.processUpdatedItem();
+    console.log(diff);
+    processUpdatedItem(document, diff, _, userId);
     Hooks.off("preUpdateItem")
 });
 
