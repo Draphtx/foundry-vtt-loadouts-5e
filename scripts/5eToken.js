@@ -4,7 +4,7 @@ class DnD5eLoadoutsToken extends LoadoutsRegistry.tokenClasses.loadoutsToken {
         console.log("Preparing 5e item")
 
         if(this.objectDocument.flags?.loadouts?.stack?.max > 1){
-            this.itemTokenSettings.displayBars = game.settings.get("loadouts", "loadouts-show-stack-bar"), // Set visibility for the 'hp' bar
+            this.itemTokenSettings.displayBars = game.settings.get("loadouts", "loadouts-5e-show-quantity-bar"),
             this.itemTokenSettings.actor = {
                 system: {
                     attributes: {
@@ -86,6 +86,48 @@ class DnD5eLoadoutsItem extends LoadoutsRegistry.tokenClasses.loadoutsItem {
             return;
         }
     };
+
+    updateStack() {
+        console.log("Lets update a stack!")
+        console.log(this.loadoutsStack)
+        super.updateStack();
+        const updateData = {
+            name: `${this.loadoutsStack.flags.loadouts.truename} (x${this.membershipIds.length})`,
+            displayName: game.settings.get("loadouts", "loadouts-show-nameplates"),
+            displayBars: game.settings.get("loadouts", "loadouts-5e-show-quantity-bar"),
+            flags: {
+                loadouts: {
+                    stack: {
+                        members: this.membershipIds
+                    }
+                }
+            }
+        };
+    
+        if (this.membershipIds.length > 1) {
+            updateData.overlayEffect = game.settings.get("loadouts", "loadouts-stack-overlay");
+        };
+        
+        try {
+            this.loadoutsStack.update(updateData);
+            this.loadoutsStack.actor.update({
+                system: {
+                    attributes: {
+                        hp: {
+                            max: this.objectDocument.flags.loadouts.stack.max, 
+                            value: this.membershipIds.length 
+                        }
+                    }
+                }
+            });
+            ui.notifications.info("Loadouts: " + this.objectDocument.parent.name + " added " + this.objectDocument.name + " to an existing stack in " + this.loadoutsTile.parent.name);
+            return true;
+        } catch (error) {
+            console.warn(`Loadouts | unable to update stack ${this.loadoutsStack.id}`);
+            console.error(`Loadouts | ${error}`);
+            return false;
+        };
+    }
 };
 
 function processUpdatedItem(document, diff, _, userId) {
@@ -135,7 +177,7 @@ async function processDecreasedQuantity(document, diff, userId, changeAmount) {
 //Hooks.once('loadoutsReady', function() {
     window.LoadoutsRegistry.registerTokenClass("dnd-5e", DnD5eLoadoutsToken);
     window.LoadoutsRegistry.registerTokenClass("dnd-5e", DnD5eLoadoutsItem);
-    console.log("%c▞▖Loadouts 5e: loaded D&D 5e Loadouts module", 'color:#ff4bff')
+    console.log("%c❦Loadouts 5e: loaded D&D 5e Loadouts module", 'color:#ff4bff')
 //});
 
 Hooks.on("preUpdateItem", function(document, diff, _, userId) {
