@@ -52,13 +52,21 @@ class DnD5eLoadoutsItem extends LoadoutsRegistry.tokenClasses.loadoutsItem {
         };
     };
 
-    processDecreasedQuantity(changeAmount) { 
-        console.log(`processing decrease in quantity by ${changeAmount}`) 
+    async processDecreasedQuantity(changeAmount) { 
+        console.log(`processing decrease in quantity by ${changeAmount}`)
+        for(let i = 0; i < changeAmount; i++) {
+            console.log(`processing removed item ${i}`)
+            this.processRemovedItem(this.objectDocument, this.diff, this.userId);
+        };
     };
 
     async processNewItem(document, diff, userId) {
         await super.processNewItem(document, diff, userId);
     };
+
+    async processRemovedItem(document, diff, userId) {
+        await super.processRemovedItem(document, diff, userId)
+    }
 
     processUpdatedItem() {
         super.processUpdatedItem();
@@ -77,55 +85,7 @@ class DnD5eLoadoutsItem extends LoadoutsRegistry.tokenClasses.loadoutsItem {
             console.log("Quantity does not appear to have changed")
             return;
         }
-
-        
-
-
-
-        // The above is working. Now we need to find the diff between the quantities and handle each change as a new event,
-        // because someone could always manually increase the quantity from 3 -> 6, for instance. So basically we need to 
-        // find out how many of the object have been added or subtracted and then execute a submethod to determine where to 
-        // place those individual members.
-
-        // Then, how do we work with the existing stacks logic to determine whether a new stack is needed?
-
-        // Then we need to handle individual item removal from the stack
-
-        // Then we need to handle removal of the parent item, such that its id is removed from all stacks and any empty stacks have their token removed
-
-/*
-        const loadoutsScenes = game.scenes.filter(
-            scene => scene.flags.loadouts).filter(
-                scene => scene.flags.loadouts.isLoadoutsScene == true);
-        
-        const loadoutsItemToken = undefined
-        for(const loadoutsScene of loadoutsScenes){
-            loadoutsItemToken = game.scenes.get(loadoutsScene.id).tokens.contents.find(token => 
-                token.flags.loadouts?.stack?.members?.includes(objectDocument.id))
-            if(loadoutsItemToken){
-                break;
-            };
-        };
-
-        if((loadoutsItemToken == null) || (loadoutsItemToken == undefined)){
-            console.warn("▞▖Loadouts 5e: Loadouts item not found; cannot reflect " + objectDocument.parent.name + "'s inventory change")
-            return;
-        };
-    
-        if(objectDocument.system.quantity >= 1){
-            console.log("Item with internal quantity found")
-            loadoutsItemToken.actor.update({
-                system: {
-                    attributes: {
-                        hp: {
-                            max: objectDocument.flags.loadouts?.stack?.max || 10,
-                            value: objectDocument.system.quantity.value
-                        }
-                    }
-                }
-            });
-        };
-*/    };
+    };
 };
 
 function processUpdatedItem(document, diff, _, userId) {
@@ -139,7 +99,7 @@ function processUpdatedItem(document, diff, _, userId) {
     if(changeType == 'increase') {
         processIncreasedQuantity(document, diff, userId, changeAmount);
     } else if(changeType == 'decrease') {
-        processDecreasedQuantity(changeAmount);
+        processDecreasedQuantity(document, diff, userId, changeAmount);
     } else {
         console.log("Quantity does not appear to have changed")
         return;
@@ -163,8 +123,13 @@ async function processIncreasedQuantity(document, diff, userId, changeAmount) {
     };
 };
 
-function processDecreasedQuantity(changeAmount) { 
-    console.log(`processing decrease in quantity by ${changeAmount}`) 
+async function processDecreasedQuantity(document, diff, userId, changeAmount) { 
+    console.log(`processing decrease in quantity by ${changeAmount}`)
+    for(let i = 0; i < changeAmount; i++) {
+        console.log(`processing removed item ${i}`)
+        const loadoutsItem = new DnD5eLoadoutsItem(document, diff, userId);
+        await loadoutsItem.processRemovedItem()
+    };
 };
 
 //Hooks.once('loadoutsReady', function() {
@@ -180,12 +145,10 @@ Hooks.on("preUpdateItem", function(document, diff, _, userId) {
     Hooks.off("preUpdateItem")
 });
 
-/*
-Hooks.on("updateItem", function(document, diff, _, userId){
-    console.log("5e item updated")
-    const loadoutsItem = new DnD5eLoadoutsItem(document, diff, userId);
-    loadoutsItem.processUpdatedItem();
-    Hooks.off("updateItem");
+Hooks.on("deleteItem", function(document, _, userId){
+    console.log(`item ${document._id} is being hard-deleted`)
+    processDecreasedQuantity(document, _, userId, document.system.quantity)
+    Hooks.off("deleteItem")
 });
-*/
+
 ///canvas.tokens.controlled[0].actor.update({system: {attributes: {hp: {value: 2, max:20}}}})
