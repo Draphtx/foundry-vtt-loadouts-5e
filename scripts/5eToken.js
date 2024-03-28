@@ -87,10 +87,10 @@ class DnD5eLoadoutsItem extends LoadoutsRegistry.tokenClasses.loadoutsItem {
         }
     };
 
-    updateStack() {
+    async updateStack() {
         console.log("Lets update a stack!")
         console.log(this.loadoutsStack)
-        super.updateStack();
+        await super.updateStack();
         const updateData = {
             name: `${this.loadoutsStack.flags.loadouts.truename} (x${this.membershipIds.length})`,
             displayName: game.settings.get("loadouts", "loadouts-show-nameplates"),
@@ -109,8 +109,8 @@ class DnD5eLoadoutsItem extends LoadoutsRegistry.tokenClasses.loadoutsItem {
         };
         
         try {
-            this.loadoutsStack.update(updateData);
-            this.loadoutsStack.actor.update({
+            await this.loadoutsStack.update(updateData);
+            await this.loadoutsStack.actor.update({
                 system: {
                     attributes: {
                         hp: {
