@@ -127,6 +127,44 @@ class DnD5eLoadoutsItem extends LoadoutsRegistry.tokenClasses.loadoutsItem {
             console.error(`Loadouts | ${error}`);
             return false;
         };
+    };
+
+    removeLoadoutsItem() {
+        super.removeLoadoutsItem()
+        if (this.membersArray.length > 0) {
+            this.removedItemToken.update({
+                name: this.objectDocument.name + (this.membersArray.length > 1 ? ` (x${this.membersArray.length})` : ''),
+                displayName: game.settings.get("loadouts", "loadouts-show-nameplates"),
+                displayBars: game.settings.get("loadouts", "loadouts-5e-show-quantity-bar"),
+                flags: {
+                    loadouts: {
+                        stack: {
+                            members: this.membersArray}
+                        }
+                    },
+                });
+            this.removedItemToken.actor.update({
+                system: {
+                    attributes: {
+                        hp: {
+                            max: this.objectDocument.flags.loadouts.stack.max, 
+                            value: this.membersArray.length 
+                        }
+                    }
+                }
+            });
+            ui.notifications.info(`Loadouts: ${this.objectDocument.parent.name} removed '${this.objectDocument.name}' from a stack in '${this.removedItemToken.parent.name}'`);
+            if(this.membersArray.length == 1) {
+                this.removedItemToken.update({
+                    displayBars: 0,
+                    overlayEffect: "",
+                    name: this.objectDocument.name,
+                })
+            };
+        } else {
+            const loadoutsToken = new DnD5eLoadoutsToken(this.removedItemToken);
+            loadoutsToken.removeLoadoutsToken();
+        };
     }
 };
 
